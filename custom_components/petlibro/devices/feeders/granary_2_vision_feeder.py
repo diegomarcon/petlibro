@@ -52,6 +52,19 @@ class Granary2VisionFeeder(GranarySmartCameraFeeder):
             _LOGGER.error(f"Error refreshing data real info for Granary2VisionFeeder: {err}")
 
     @property
+    def online(self) -> bool:
+        """Return online state from the payload variants used by PLAF205 models."""
+        for payload in (
+            self._data.get("realInfo", {}),
+            self._data.get("dataRealInfo", {}),
+            self._data,
+        ):
+            value = payload.get("online")
+            if value is not None:
+                return bool(value)
+        return False
+
+    @property
     def night_vision(self) -> str:
         """Return the current night vision mode.
 
@@ -68,6 +81,10 @@ class Granary2VisionFeeder(GranarySmartCameraFeeder):
             return None
         value = self._data.get("realInfo", {}).get("leftWarehouseSurplusGrain")
         if value is None:
+            value = self._data.get("dataRealInfo", {}).get("leftWarehouseSurplusGrain")
+        if value is None:
+            value = self._data.get("leftWarehouseSurplusGrain")
+        if value is None:
             return None
         return not bool(value)
 
@@ -77,6 +94,10 @@ class Granary2VisionFeeder(GranarySmartCameraFeeder):
         if not self.supports_dual_bowl:
             return None
         value = self._data.get("realInfo", {}).get("rightWarehouseSurplusGrain")
+        if value is None:
+            value = self._data.get("dataRealInfo", {}).get("rightWarehouseSurplusGrain")
+        if value is None:
+            value = self._data.get("rightWarehouseSurplusGrain")
         if value is None:
             return None
         return not bool(value)
